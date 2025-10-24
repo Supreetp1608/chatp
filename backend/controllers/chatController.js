@@ -49,15 +49,7 @@ const getConversations = async (req, res) => {
           lastMessage: { $first: '$message' },
           lastMessageTime: { $first: '$timestamp' },
           messageCount: { $sum: 1 },
-          unreadCount: {
-            $sum: {
-              $cond: [
-                { $and: [{ $ne: ['$senderId', userId] }, { $eq: ['$read', false] }] },
-                1,
-                0
-              ]
-            }
-          }
+          lastSenderId: { $first: '$senderId' }
         }
       },
       {
@@ -78,7 +70,7 @@ const getConversations = async (req, res) => {
           lastMessage: 1,
           lastMessageTime: 1,
           messageCount: 1,
-          unreadCount: 1
+          lastSenderId: 1
         }
       },
       {

@@ -19,14 +19,18 @@ const Chat = ({ user, token, onLogout }) => {
     newSocket.emit('authenticate', token);
 
     newSocket.on('new_message', (message) => {
-      setMessages(prev => [...prev, message]);
+      // If this message is for current chat, add to messages
+      if (currentChat && (message.senderId.pin === currentChat || message.receiverId.pin === currentChat)) {
+        setMessages(prev => [...prev, message]);
+      }
+      // Always reload conversations to show new chats
       loadConversations();
     });
 
     loadConversations();
 
     return () => newSocket.close();
-  }, [token]);
+  }, [token, currentChat]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -180,37 +184,42 @@ const Chat = ({ user, token, onLogout }) => {
               <p className="text-gray-400 text-xs mt-1">Start a conversation by entering a PIN</p>
             </div>
           ) : (
-            conversations.map((conv) => (
-              <div
-                key={conv.pin}
-                onClick={() => handleConversationClick(conv.pin)}
-                className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-                  currentChat === conv.pin ? 'bg-gray-100' : ''
-                }`}
-              >
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                  {conv.pin}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <h4 className="font-medium text-gray-900 truncate">PIN: {conv.pin}</h4>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {formatTime(conv.lastMessageTime)}
-                    </span>
+            conversations.map((conv) => {
+              const isUnread = conv.lastSenderId && conv.lastSenderId.toString() !== user.id;
+              return (
+                <div
+                  key={conv.pin}
+                  onClick={() => handleConversationClick(conv.pin)}
+                  className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
+                    currentChat === conv.pin ? 'bg-gray-100' : ''
+                  }`}
+                >
+                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    {conv.pin}
                   </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className="text-sm text-gray-600 truncate">
-                      {conv.lastMessage}
-                    </p>
-                    {conv.messageCount > 0 && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full ml-2">
-                        {conv.messageCount}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline">
+                      <h4 className={`font-medium truncate ${
+                        isUnread ? 'text-gray-900 font-semibold' : 'text-gray-900'
+                      }`}>PIN: {conv.pin}</h4>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {formatTime(conv.lastMessageTime)}
                       </span>
-                    )}
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className={`text-sm truncate ${
+                        isUnread ? 'text-gray-800 font-medium' : 'text-gray-600'
+                      }`}>
+                        {conv.lastMessage}
+                      </p>
+                      {isUnread && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full ml-2"></div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -280,11 +289,6 @@ const Chat = ({ user, token, onLogout }) => {
                         </svg>
                       )}
                     </div>
-                    {message.senderId._id !== user.id && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        PIN: {message.senderId.pin}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
