@@ -1,9 +1,10 @@
 const express = require('express');
-const { getMessages, sendMessage } = require('../controllers/chatController');
+const { getMessages, sendMessage, getConversations } = require('../controllers/chatController');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+router.get('/conversations', auth, getConversations);
 router.get('/messages/:receiverPin', auth, getMessages);
 router.post('/send', auth, sendMessage);
 
