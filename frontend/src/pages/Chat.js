@@ -13,7 +13,7 @@ const Chat = ({ user, token, onLogout }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:5000');
     setSocket(newSocket);
 
     newSocket.emit('authenticate', token);
@@ -34,7 +34,7 @@ const Chat = ({ user, token, onLogout }) => {
 
   const loadConversations = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/chat/conversations', {
+      const response = await axios.get('/api/chat/conversations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversations(response.data);
@@ -45,7 +45,7 @@ const Chat = ({ user, token, onLogout }) => {
 
   const loadMessages = async (pin) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/chat/messages/${pin}`, {
+      const response = await axios.get(`/api/chat/messages/${pin}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(response.data);

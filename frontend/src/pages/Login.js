@@ -26,7 +26,7 @@ const Login = ({ onLogin }) => {
         ? { username: formData.username, password: formData.password }
         : formData;
 
-      const response = await axios.post(`http://localhost:5000${endpoint}`, data);
+      const response = await axios.post(endpoint, data);
       onLogin(response.data.user, response.data.token);
     } catch (error) {
       setError(error.response?.data?.message || 'An error occurred');
